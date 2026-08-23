@@ -206,11 +206,11 @@ cron: RUNNING
 
 ### System Monitoring Output
 
-![System Monitoring Output](screenshots/monitoring-output.png)
+![System Monitoring Output](monitoring-output.png)
 
 ### Automated Cron Execution
 
-![Cron Automation](screenshots/cron-automation.png)
+![Cron Automation](cron-automation.png)
 
 ---
 
