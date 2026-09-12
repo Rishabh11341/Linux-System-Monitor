@@ -1,6 +1,6 @@
 # Linux System Monitoring & Automation
 
-A Bash-based Linux system monitoring and automation tool designed to track system health, identify resource-intensive processes, monitor critical services, and automatically record system metrics using cron.
+A Bash-based Linux system monitoring and automation tool designed to track system health, identify resource-intensive processes, monitor critical services, and automatically record system metrics using cron. The project is also containerized using Docker.
 
 ---
 
@@ -8,25 +8,26 @@ A Bash-based Linux system monitoring and automation tool designed to track syste
 
 This project automates basic Linux system health monitoring using Bash scripting and standard Linux utilities.
 
-The monitoring script checks CPU, memory, and disk utilization against configurable thresholds. It also identifies the processes consuming the most CPU and memory, checks the status of the cron service, and stores monitoring results in a persistent log file.
+The monitoring script checks CPU, memory, and disk utilization against configurable thresholds. It also identifies the processes consuming the most CPU and memory, checks the status of the cron service when systemd is available, and stores monitoring results in a persistent log file.
 
-The script is automatically executed every 5 minutes using a Linux cron job.
+The script can be automatically executed every 5 minutes using a Linux cron job and can also be run inside a Docker container.
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| CPU Monitoring | Tracks current CPU utilization |
-| Memory Monitoring | Tracks system memory utilization |
-| Disk Monitoring | Checks root filesystem disk usage |
-| Threshold Detection | Generates warnings when configured limits are exceeded |
-| Process Monitoring | Displays top CPU and memory-consuming processes |
-| Service Monitoring | Checks whether the cron service is running |
-| Logging | Stores timestamped monitoring results |
-| Cron Automation | Automatically executes monitoring every 5 minutes |
-| Configuration | Resource thresholds can be modified without changing the script |
+| Feature             | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| CPU Monitoring      | Tracks current CPU utilization                                  |
+| Memory Monitoring   | Tracks system memory utilization                                |
+| Disk Monitoring     | Checks root filesystem disk usage                               |
+| Threshold Detection | Generates warnings when configured limits are exceeded          |
+| Process Monitoring  | Displays top CPU and memory-consuming processes                 |
+| Service Monitoring  | Checks the cron service status when systemd is available        |
+| Logging             | Stores timestamped monitoring results                           |
+| Cron Automation     | Automatically executes monitoring every 5 minutes               |
+| Configuration       | Resource thresholds can be modified without changing the script |
+| Docker Support      | Runs the monitoring script inside a Docker container            |
 
 ---
 
@@ -62,25 +63,36 @@ The script is automatically executed every 5 minutes using a Linux cron job.
                                   |
                                   v
                          Monitoring Log
-                                  |
-                                  v
-                  logs/system_monitor.log
+                           
 
+                    Docker Support
+                         |
+                         v
+                  +--------------+
+                  | Ubuntu 24.04 |
+                  |  Container    |
+                  +--------------+
+                         |
+                         v
+                 system_monitor.sh
+```
 
 ---
 
 ## Technologies Used
 
-- Linux
-- Bash Shell Scripting
-- Cron
-- systemd / systemctl
-- AWK
-- ps
-- df
-- free
-- top
-- Git & GitHub
+* Linux
+* Bash Shell Scripting
+* Cron
+* systemd / systemctl
+* Docker
+* Dockerfile
+* AWK
+* ps
+* df
+* free
+* top
+* Git & GitHub
 
 ---
 
@@ -90,6 +102,7 @@ The script is automatically executed every 5 minutes using a Linux cron job.
 linux-system-monitor/
 ├── system_monitor.sh
 ├── config.conf
+├── Dockerfile
 ├── README.md
 ├── .gitignore
 └── logs/
@@ -137,10 +150,10 @@ chmod +x system_monitor.sh
 
 ## Automated Monitoring with Cron
 
-The monitoring script runs automatically every 5 minutes using Linux cron.
+The monitoring script can be configured to run automatically every 5 minutes using Linux cron.
 
 ```cron
-*/5 * * * * /home/rishabh_singh_tomar/linux-system-monitor/system_monitor.sh
+*/5 * * * * /home/rishabh_singh_tomar/linux-system-monitor/Linux-System-Monitor/system_monitor.sh
 ```
 
 Monitoring results are stored in:
@@ -163,22 +176,46 @@ tail -n 30 logs/system_monitor.log
 
 ---
 
+## Run with Docker
+
+The monitoring application can also be executed inside a Docker container.
+
+### Build the Docker image
+
+```bash
+docker build -t system-monitor .
+```
+
+### Run the monitoring script
+
+```bash
+docker run --rm system-monitor
+```
+
+The Docker image uses Ubuntu 24.04 as the base environment.
+
+The container runs the monitoring script and displays CPU, memory, disk, process, and service monitoring information.
+
+Since lightweight containers do not normally run systemd, the script detects when `systemctl` is unavailable and handles the container environment accordingly.
+
+---
+
 ## Example Output
 
 ```text
 ================================
      Linux System Monitor
 ================================
-Monitoring Run: Sat Aug 22 06:55:01 UTC 2026
-Hostname: Rishabh-PC
-Uptime: up 6 minutes
+Monitoring Run: Sat Sep 12 08:06:41 UTC 2026
+Hostname: 6fe16d30285c
+Uptime: up 31 minutes
 
 CPU Usage:
-CPU Usage: 1%
+CPU Usage: 0%
 CPU Status: NORMAL
 
 Memory Usage:
-Memory Usage: 7%
+Memory Usage: 8%
 Memory Status: NORMAL
 
 Disk Usage:
@@ -187,17 +224,20 @@ Disk Status: NORMAL
 
 Top CPU-consuming processes:
     PID COMMAND         %CPU %MEM
-      1 systemd          0.2  0.1
-     88 systemd-udevd    0.0  0.1
-    161 networkd-dispat  0.0  0.3
+      1 system_monitor. 14.2  0.0
+     10 tee              0.0  0.0
+     29 ps               0.0  0.0
+     30 head             0.0  0.0
 
 Top Memory-consuming processes:
     PID COMMAND         %CPU %MEM
-    220 unattended-upgr  0.0  0.4
-    161 networkd-dispat  0.0  0.3
+     31 ps               0.0  0.0
+      1 system_monitor. 14.2  0.0
+     10 tee              0.0  0.0
+     32 head             0.0  0.0
 
 Service Status:
-cron: RUNNING
+cron: systemctl unavailable (container)
 ```
 
 ---
@@ -211,6 +251,10 @@ cron: RUNNING
 ### Automated Cron Execution
 
 ![Cron Automation](Cron-Automation.png)
+
+### Dockerized Monitoring
+
+![Dockerized Monitoring](Docker-Output.png)
 
 ---
 
@@ -226,27 +270,30 @@ Generated log files are excluded from Git using `.gitignore`.
 
 This project provided hands-on experience with:
 
-- Linux system administration
-- Bash scripting and automation
-- CPU, memory, and disk monitoring
-- Linux process monitoring
-- Linux service management
-- Cron job scheduling
-- Log management
-- Configuration-driven scripting
-- Git version control
-- GitHub repository management
+* Linux system administration
+* Bash scripting and automation
+* CPU, memory, and disk monitoring
+* Linux process monitoring
+* Linux service management
+* Cron job scheduling
+* Log management
+* Configuration-driven scripting
+* Docker image creation and container execution
+* Containerizing a Bash-based Linux monitoring application
+* Git version control
+* GitHub repository management
 
 ---
 
 ## Future Improvements
 
-- Email or messaging alerts for critical thresholds
-- Monitoring additional Linux services
-- Historical metric visualization
-- Monitoring multiple filesystems
-- Remote server monitoring
-- Prometheus/Grafana integration
+* Email or messaging alerts for critical thresholds
+* Monitoring additional Linux services
+* Historical metric visualization
+* Monitoring multiple filesystems
+* Remote server monitoring
+* Docker Compose deployment
+* Prometheus/Grafana integration
 
 ---
 
