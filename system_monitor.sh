@@ -110,10 +110,14 @@ SERVICES=("cron")
 
 for SERVICE in "${SERVICES[@]}"; do
 
-    if systemctl is-active --quiet "$SERVICE"; then
-        echo "$SERVICE: RUNNING"
+    if command -v systemctl >/dev/null 2>&1; then
+        if systemctl is-active --quiet "$SERVICE"; then
+            echo "$SERVICE: RUNNING"
+        else
+            echo "$SERVICE: NOT RUNNING"
+        fi
     else
-        echo "$SERVICE: NOT RUNNING"
+        echo "$SERVICE: systemctl unavailable (container)"
     fi
 
 done
